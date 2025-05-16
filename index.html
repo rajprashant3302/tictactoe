@@ -93,21 +93,35 @@
   }
 }
 
-#msg.animate {
-  animation: winnerAnimation 1s ease-in-out 4; /* Run 3 times */
+.animate {
+  animation: winnerAnimation 1s ease-in-out 5; 
+}
+#mode{
+  display:flex;
+  
+  gap:10px;
+}
+@media screen  and (max-width:700px){
+  #mode{flex-direction:column;
+  }
+  .reset{
+    width:300px;
+  }
+  
 }
 
     
     
     
 </style>
-<body>
+
     <div id="mode-screen" style="text-align:center; padding:50px;">
     <h1 style="color:white;">Choose Game Mode</h1>
+    <div id="mode">
     <button class="reset" onclick="startGame(1)">Easy Mode(computer)</button>
     <button class="reset" onclick="startGame(2)">Hard Mode(computer)</button>
     <button class="reset" onclick="location.href='tictactoe.html'">Two Player Game</button>
-</div>
+</div></div>
 <div id="game-board" style="display: none;">
 
     <div class="container">
@@ -172,53 +186,42 @@ btn.forEach((box) => {
   });
 });
 
-function checkwinner() {
-  for (let pattern of win) {
-    const [a, b, c] = pattern;
-    if (
-      btn[a].textContent !== "" &&
-      btn[a].textContent === btn[b].textContent &&
-      btn[a].textContent === btn[c].textContent
-    ) {
-      msg.innerText = "Congratulations " + btn[a].textContent + " Wins";
-      msg.classList.remove("hide");
-      msg.classList.add("animate");
-      isGameOver = true;
-      disableAll();
-      return;
-    }
-  }
-
-  if ([...btn].every(b => b.textContent !== "")) {
-    msg.innerText = "It's a Draw!";
-    msg.classList.remove("hide");
-    isGameOver = true;
-  }
-}
-
 function disableAll() {
   btn.forEach(b => b.disabled = true);
 }
 
-function computerMove() {
-  if (mode === "1") {
-    easyAI();
-  } else {
-    hardAI();
-  }
-  turnO = true;
-  msg.textContent="Humans's Turn";
-  checkwinner();
+// function computerMove() {
+  // if (mode === "1") {
+    // easyAI();
+  // } else {
+    // hardAI();
+  // }
+  // turnO = true;
+  // msg.textContent="Humans's Turn";
+  // checkwinner();
+// }
+
+
+function getSmartMove() {
+    // Try to find a winning or blocking move
+    for (let pattern of win) {
+        const [a, b, c] = pattern;
+        const values = [btn[a].innerText, btn[b].innerText, btn[c].innerText];
+
+        // Win
+        if (values.filter(v => v === "X").length === 2 && values.includes("")) {
+            return btn[pattern[values.indexOf("")]];
+        }
+
+        // Block
+        if (values.filter(v => v === "O").length === 2 && values.includes("")) {
+            return btn[pattern[values.indexOf("")]];
+        }
+    }
+    return null;
 }
 
-function easyAI() {
-  let empty = [...btn].filter(b => b.textContent === "");
-  if (empty.length === 0) return;
-  let move = empty[Math.floor(Math.random() * empty.length)];
-  move.textContent = "X";
-  
-  move.disabled = true;
-}
+
 
 function hardAI() {
   let bestScore = -Infinity;
@@ -226,7 +229,7 @@ function hardAI() {
   for (let i = 0; i < btn.length; i++) {
     if (btn[i].textContent === "") {
       btn[i].textContent = "X";
-      let score = minimax(0, false);
+      let score = minimax(0, false, -Infinity, Infinity);
       btn[i].textContent = "";
       if (score > bestScore) {
         bestScore = score;
@@ -234,14 +237,42 @@ function hardAI() {
       }
     }
   }
-  if (bestMove !== undefined) {
-    btn[bestMove].textContent = "X";
-    btn[bestMove].disabled = true;
-  }
+  return bestMove;
 }
 
-function minimax(depth, isMaximizing) {
-  let winner = getWinner();
+function computerMove() {
+    if (isGameOver) return;
+
+    let empty = [...btn].filter(b => b.innerText === "");
+    if (empty.length === 0) return;
+
+    let move;
+
+    if (mode === 1) {
+        // Easy mode
+        move = getSmartMove() || empty[Math.floor(Math.random() * empty.length)];
+    } else {
+        // Hard mode
+        const bestMove = hardAI();
+        if (bestMove !== undefined) {
+            move = btn[bestMove];
+        } else {
+            return;
+        }
+    }
+
+    move.innerText = "X";
+    move.disabled = true;
+    checkwinner();
+
+    if (!isGameOver) {
+        turnO = true;
+        msg.textContent = "Human's Turn";
+    }
+}
+
+function minimax(depth, isMaximizing, alpha, beta) {
+  const winner = getWinner();
   if (winner === "X") return 10 - depth;
   if (winner === "O") return depth - 10;
   if ([...btn].every(b => b.textContent !== "")) return 0;
@@ -251,9 +282,11 @@ function minimax(depth, isMaximizing) {
     for (let i = 0; i < btn.length; i++) {
       if (btn[i].textContent === "") {
         btn[i].textContent = "X";
-        let score = minimax(depth + 1, false);
+        let score = minimax(depth + 1, false, alpha, beta);
         btn[i].textContent = "";
-        best = Math.max(score, best);
+        best = Math.max(best, score);
+        alpha = Math.max(alpha, best);
+        if (beta <= alpha) break;
       }
     }
     return best;
@@ -262,14 +295,55 @@ function minimax(depth, isMaximizing) {
     for (let i = 0; i < btn.length; i++) {
       if (btn[i].textContent === "") {
         btn[i].textContent = "O";
-        let score = minimax(depth + 1, true);
+        let score = minimax(depth + 1, true, alpha, beta);
         btn[i].textContent = "";
-        best = Math.min(score, best);
+        best = Math.min(best, score);
+        beta = Math.min(beta, best);
+        if (beta <= alpha) break;
       }
     }
     return best;
   }
 }
+
+
+
+// function computerMove() {
+    // let empty = [...btn].filter(b => b.innerText === "");
+    // if (empty.length === 0 || isGameOver) return;
+// 
+    // let move;
+// 
+    // if (mode === 1) {
+       // Easy Mode: 70% random, 30% chance to block/win
+        // if (Math.random() < 0.3) {
+            // move = empty[Math.floor(Math.random() * empty.length)];
+        // } else {
+            // move = getSmartMove() || empty[Math.floor(Math.random() * empty.length)];
+        // }
+    // } else {
+        // hardAI();    
+        // 
+    // }
+// 
+    // move.innerText = "X";
+    // move.disabled = true;
+    // checkwinner(); // Fix: call correct function
+    // turnO = true;
+    //  if(!isGameOver)msg.textContent = "Human's Turn";
+// }
+
+
+// function easyAI() {
+  // let empty = [...btn].filter(b => b.textContent === "");
+  // if (empty.length === 0) return;
+  // let move = empty[Math.floor(Math.random() * empty.length)];
+  // move.textContent = "X";
+  // 
+  // move.disabled = true;
+// }
+
+
 
 function getWinner() {
   for (let pattern of win) {
@@ -285,21 +359,75 @@ function getWinner() {
   return null;
 }
 
+
+function checkwinner() {
+  for (let pattern of win) {
+    const [a, b, c] = pattern;
+    if (
+      btn[a].textContent !== "" &&
+      btn[a].textContent === btn[b].textContent &&
+      btn[a].textContent === btn[c].textContent
+    ) {
+      msg.textContent =  (btn[a].textContent==="X")?"Congratulations Computer wins" : "Congratulations Human wins" ;
+      msg.classList.remove("hide");
+      msg.classList.add("animate");
+      isGameOver = true;
+      disableAll();
+      return;
+    }
+  }
+
+  if ([...btn].every(b => b.textContent !== "")) {
+    msg.innerText = "It's a Draw!";
+    msg.classList.remove("hide");
+    isGameOver = true;
+  }
+}
+
 reset.addEventListener("click", () => {
   btn.forEach(b => {
     b.textContent = "";
     b.disabled = false;
   });
-  msg.textContent="Human's Turn"
+  msg.textContent = "Human's Turn";
+  msg.classList.remove("animate");
   msg.classList.add("hide");
   isGameOver = false;
   turnO = true;
-  if (mode === "2") {
-    setTimeout(() => computerMove(), 500); // X (computer) starts in hard mode
+
+  if (mode === 2) {
+    msg.textContent="Computer is playing..."
+    setTimeout(() => computerMove(), 50);
+     // Hard mode - computer starts
     turnO = true;
   }
 });
+
+
+newBtn.addEventListener("click", () => {
+  btn.forEach(b => {
+    b.textContent = "";
+    b.disabled = false;
+  });
+  msg.textContent = "Human's Turn";
+  msg.classList.remove("animate");
+  msg.classList.add("hide");
+  isGameOver = false;
+  turnO = true;
+
+  if (mode === 2) {
+    setTimeout(() => computerMove(), 100); // Hard mode - computer starts
+    turnO = true;
+  }
+
+  document.getElementById("mode-screen").style.display = "block";
+document.getElementById("game-board").style.display = "none";
+});
+
 </script>
+
+
+
 
 </body>
 </html>
