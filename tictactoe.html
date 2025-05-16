@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+</head>
+<style>
+    *{
+        margin:0;
+        padding:0;
+    }
+    html,body{
+        height:100%;
+        width:100%;
+    }
+    body{
+        background-color: #548687;
+        display:flex;
+        justify-content: center;
+        align-items: center;
+        
+    }
+    h1{
+        background:linear-gradient(to right , blue ,violet);
+        padding:10px;
+        border-radius:10px;
+    }
+    .container{
+        padding:30px;
+        min-height:80vmin;
+        min-width:80vmin;
+        border:1px solid black;
+        
+    
+        text-align:center;
+    }
+    .game{
+        width:80%;
+        
+        height:80%;
+        display:grid;
+        margin-left:10%;
+        margin-top:5vh;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        gap:15px;
+    }
+    .child{
+        border:none;
+        background-color:#ffffc7 ;
+        border-radius:5px;
+        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
+        text-align: center;
+        font-size: 7rem;
+        padding:5px;
+        height:130px;
+        height:130px;
+        color:black
+        
+    }
+    .reset{
+        
+        width:40%;
+        font-size:1.5rem;
+        border:none;
+        background:black ;
+        border-radius:15px;
+        color:white;
+        margin-top:20px;
+        padding:10px
+    }
+    #msg{
+        color:white;
+        padding:20px;
+        margin-top:20px;
+        font-size: 3rem ;
+    }
+    @keyframes winnerAnimation {
+  0% {
+    transform: scale(1);
+    opacity: 0;
+    text-shadow: none;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+    text-shadow: 0 0 10px yellow, 0 0 20px gold;
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 10px yellow, 0 0 20px gold;
+  }
+}
+
+#msg.animate {
+  animation: winnerAnimation 1s ease-in-out 4; /* Run 3 times */
+}
+
+    
+    
+    
+</style>
+<body>
+
+    <div class="container">
+        <h1>TIC-TAC-TOE GAME</h1>
+        <div class="game">
+            
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+        </div>
+        <p class="msg hide" id="msg">O 's Turn</p>
+        <div>
+            <button class="reset" id="reset">Reset</button>
+            <button class="reset" id="new">New Game</button>
+        </div>
+    </div>
+    <script>
+        let btn=document.querySelectorAll(".child");
+        let reset=document.querySelector(".reset");
+        let newBtn=document.querySelector("#new");
+        let msg=document.querySelector("#msg");
+        let chances=0;
+
+        let turnO=true;
+        const win=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
+        btn.forEach((box)=>{
+            box.addEventListener("click",()=>{
+            if(turnO){
+            box.textContent="O";
+            msg.innerText="X's Turn";
+            turnO=false;
+        }else{
+            box.textContent="X";
+            msg.innerText="O's Turn";
+            turnO=true;
+        }
+        box.disabled=true;
+        checkwinner();
+
+        })
+
+        
+        
+
+    })
+    function checkwinner()
+{ if(chances==8) {
+    msg.innerText="Match Draw ! Play Again";
+    return;
+}
+    
+    chances++;
+    for(let pattern of win){
+        
+        // console.log(btn[pattern[0]].innerText,btn[pattern[1]].innerText,btn[pattern[2]].innerText)
+        if(btn[pattern[0]].innerText!="" && btn[pattern[1]].innerText!="" && btn[pattern[2]].innerText!="")
+        if(btn[pattern[0]].innerText===btn[pattern[1]].innerText && btn[pattern[1]].innerText===btn[pattern[2]].innerText){
+            
+            msg.innerText="Congratulations "+btn[pattern[0]].innerText+" " +"Wins";
+            msg.classList.add("animate");
+            setTimeout(() => {
+              msg.classList.remove("animate");
+            }, 10000);
+
+            
+            btn.forEach((box)=>{
+            box.disabled=true;});
+        }
+    }
+} 
+
+    reset.addEventListener("click",()=>{
+        turnO=true;
+        chances=0;
+        msg.innerText="O's Turn";
+        btn.forEach((box)=>{
+        box.disabled=false;
+        box.innerText="";
+    });
+
+
+    })
+
+    newBtn.addEventListener("click",()=>{
+    turnO=true;
+    chances=0;
+    msg.innerText="O's Turn";
+    btn.forEach((box)=>{
+    box.disabled=false;
+    box.innerText="";
+});})
+
+    </script>
+</body>
+</html>
