@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+</head>
+<style>
+    *{
+        margin:0;
+        padding:0;
+    }
+    html,body{
+        height:100%;
+        width:100%;
+    }
+    body{
+        background-color: #548687;
+        display:flex;
+        justify-content: center;
+        align-items: center;
+        
+    }
+    h1{
+        background:linear-gradient(to right , blue ,violet);
+        padding:10px;
+        border-radius:10px;
+    }
+    .container{
+        padding:30px;
+        min-height:80vmin;
+        min-width:80vmin;
+        border:1px solid black;
+        
+    
+        text-align:center;
+    }
+    .game{
+        width:80%;
+        
+        height:80%;
+        display:grid;
+        margin-left:10%;
+        margin-top:5vh;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        gap:15px;
+    }
+    .child{
+        border:none;
+        background-color:#ffffc7 ;
+        border-radius:5px;
+        box-shadow: 0 0 1rem rgba(0,0,0,0.5);
+        text-align: center;
+        font-size: 7rem;
+        padding:5px;
+        height:130px;
+        height:130px;
+        color:black
+        
+    }
+    .reset{
+        
+        width:40%;
+        font-size:1.5rem;
+        border:none;
+        background:black ;
+        border-radius:15px;
+        color:white;
+        margin-top:20px;
+        padding:10px
+    }
+    #msg{
+        color:white;
+        padding:20px;
+        margin-top:20px;
+        font-size: 3rem ;
+    }
+    @keyframes winnerAnimation {
+  0% {
+    transform: scale(1);
+    opacity: 0;
+    text-shadow: none;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+    text-shadow: 0 0 10px yellow, 0 0 20px gold;
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 10px yellow, 0 0 20px gold;
+  }
+}
+
+#msg.animate {
+  animation: winnerAnimation 1s ease-in-out 4; /* Run 3 times */
+}
+
+    
+    
+    
+</style>
+<body>
+    <div id="mode-screen" style="text-align:center; padding:50px;">
+    <h1 style="color:white;">Choose Game Mode</h1>
+    <button class="reset" onclick="startGame(1)">Easy Mode(computer)</button>
+    <button class="reset" onclick="startGame(2)">Hard Mode(computer)</button>
+    <button class="reset" onclick="location.href='tictactoe.html'">Two Player Game</button>
+</div>
+<div id="game-board" style="display: none;">
+
+    <div class="container">
+        <h1>TIC-TAC-TOE GAME</h1>
+        <div class="game">
+            
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+                <button class="child"></button>
+        </div>
+        <p class="msg hide" id="msg">Human 's Turn</p>
+        <div>
+            <button class="reset" id="reset">Reset</button>
+            <button class="reset" id="new">New Game</button>
+        </div>
+    </div>
+    </div>
+    <script>
+let btn = document.querySelectorAll(".child");
+let reset = document.querySelector("#reset");
+let newBtn = document.querySelector("#new");
+let msg = document.getElementById("msg");
+
+let turnO = true;
+let isGameOver = false;
+let mode = 1;
+function startGame(selectedMode) {
+    mode = selectedMode;
+    document.getElementById("mode-screen").style.display = "none";
+    document.getElementById("game-board").style.display = "block";
+    if (mode === 2) {
+        setTimeout(() => computerMove(), 500); 
+        turnO = true;
+    }
+}
+
+
+const win = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
+];
+
+btn.forEach((box) => {
+  box.addEventListener("click", () => {
+    if (isGameOver || !turnO || box.textContent !== "") return;
+    
+    box.textContent = "O";
+    box.disabled = true;
+    turnO = false;
+    msg.textContent="Computer is Playing !"
+    checkwinner();
+    if (!isGameOver) {
+      setTimeout(() => computerMove(), 500);
+    }
+  });
+});
+
+function checkwinner() {
+  for (let pattern of win) {
+    const [a, b, c] = pattern;
+    if (
+      btn[a].textContent !== "" &&
+      btn[a].textContent === btn[b].textContent &&
+      btn[a].textContent === btn[c].textContent
+    ) {
+      msg.innerText = "Congratulations " + btn[a].textContent + " Wins";
+      msg.classList.remove("hide");
+      msg.classList.add("animate");
+      isGameOver = true;
+      disableAll();
+      return;
+    }
+  }
+
+  if ([...btn].every(b => b.textContent !== "")) {
+    msg.innerText = "It's a Draw!";
+    msg.classList.remove("hide");
+    isGameOver = true;
+  }
+}
+
+function disableAll() {
+  btn.forEach(b => b.disabled = true);
+}
+
+function computerMove() {
+  if (mode === "1") {
+    easyAI();
+  } else {
+    hardAI();
+  }
+  turnO = true;
+  msg.textContent="Humans's Turn";
+  checkwinner();
+}
+
+function easyAI() {
+  let empty = [...btn].filter(b => b.textContent === "");
+  if (empty.length === 0) return;
+  let move = empty[Math.floor(Math.random() * empty.length)];
+  move.textContent = "X";
+  
+  move.disabled = true;
+}
+
+function hardAI() {
+  let bestScore = -Infinity;
+  let bestMove;
+  for (let i = 0; i < btn.length; i++) {
+    if (btn[i].textContent === "") {
+      btn[i].textContent = "X";
+      let score = minimax(0, false);
+      btn[i].textContent = "";
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = i;
+      }
+    }
+  }
+  if (bestMove !== undefined) {
+    btn[bestMove].textContent = "X";
+    btn[bestMove].disabled = true;
+  }
+}
+
+function minimax(depth, isMaximizing) {
+  let winner = getWinner();
+  if (winner === "X") return 10 - depth;
+  if (winner === "O") return depth - 10;
+  if ([...btn].every(b => b.textContent !== "")) return 0;
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (let i = 0; i < btn.length; i++) {
+      if (btn[i].textContent === "") {
+        btn[i].textContent = "X";
+        let score = minimax(depth + 1, false);
+        btn[i].textContent = "";
+        best = Math.max(score, best);
+      }
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (let i = 0; i < btn.length; i++) {
+      if (btn[i].textContent === "") {
+        btn[i].textContent = "O";
+        let score = minimax(depth + 1, true);
+        btn[i].textContent = "";
+        best = Math.min(score, best);
+      }
+    }
+    return best;
+  }
+}
+
+function getWinner() {
+  for (let pattern of win) {
+    const [a, b, c] = pattern;
+    if (
+      btn[a].textContent !== "" &&
+      btn[a].textContent === btn[b].textContent &&
+      btn[a].textContent === btn[c].textContent
+    ) {
+      return btn[a].textContent;
+    }
+  }
+  return null;
+}
+
+reset.addEventListener("click", () => {
+  btn.forEach(b => {
+    b.textContent = "";
+    b.disabled = false;
+  });
+  msg.textContent="Human's Turn"
+  msg.classList.add("hide");
+  isGameOver = false;
+  turnO = true;
+  if (mode === "2") {
+    setTimeout(() => computerMove(), 500); // X (computer) starts in hard mode
+    turnO = true;
+  }
+});
+</script>
+
+</body>
+</html>
